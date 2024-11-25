@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neural Networks Visualization</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Visualizing Neural Networks</h1>
+      <form id="experiment-form">
+        <div class="input-group">
+          <label for="activation">Activation Function:</label>
+          <select id="activation" name="activation" required>
+            <option value="tanh">Tanh</option>
+            <option value="relu">ReLU</option>
+            <option value="sigmoid">Sigmoid</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="lr">Learning Rate:</label>
+          <input
+            type="number"
+            step="0.01"
+            id="lr"
+            name="lr"
+            placeholder="e.g., 0.01"
+            required
+          />
+        </div>
+        <div class="input-group">
+          <label for="step_num">Number of Training Steps:</label>
+          <input
+            type="number"
+            step="1"
+            id="step_num"
+            name="step_num"
+            placeholder="e.g., 500"
+            required
+          />
+        </div>
+        <button type="submit" id="submit-button">Train and Visualize</button>
+      </form>
+
+      <div id="loading" style="display: none">
+        <p>Processing your request, please wait...</p>
+      </div>
+
+      <div id="results" style="display: none">
+        <h2>Results</h2>
+        <img id="result_gif" src="" alt="Visualization Result" />
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("experiment-form")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          // Show loading message
+          document.getElementById("loading").style.display = "block";
+          document.getElementById("results").style.display = "none";
+
+          // Fetch input values
+          const activation = document.getElementById("activation").value;
+          const lr = parseFloat(document.getElementById("lr").value);
+          const stepNum = parseInt(document.getElementById("step_num").value);
+
+          try {
+            // Send data to the server
+            const response = await fetch("/run_experiment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ activation, lr, step_num: stepNum }),
+            });
+
+            const data = await response.json();
+            if (data.error) {
+              alert(`Error: ${data.error}`);
+            } else if (data.result_gif) {
+              // Display the result GIF
+              document.getElementById("result_gif").src = data.result_gif;
+              document.getElementById("result_gif").style.display = "block";
+              document.getElementById("results").style.display = "block";
+            }
+          } catch (err) {
+            alert(`An error occurred: ${err.message}`);
+          } finally {
+            // Hide loading message
+            document.getElementById("loading").style.display = "none";
+          }
+        });
+    </script>
+  </body>
+</html>
